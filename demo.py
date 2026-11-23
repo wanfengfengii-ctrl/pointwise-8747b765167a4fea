@@ -3,17 +3,17 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from archive.publish import finalize
+from archive.publish import finalize, issue_shared
 from archive.seal import TailSeal
 from custody.device import DevicePageUnavailable, ReleaseOutcome
 from custody.receive import receive_page
 from custody.resume import resume_page
 from reading.framing import Dialect
-from registry.identity import PendingReel, RegistrationMode
+from registry.identity import ExchangeError, PendingReel, RegistrationMode
 from registry.intake import register
 from registry.session import open_session
 from review.handover import handover_list
-from review.reconcile import audit_range
+from review.reconcile import audit_range, reconcile_shared
 from review.report import get_report
 
 
@@ -66,6 +66,64 @@ def collect_reel(ledger, device_ledger, batch, device_id, material):
         return report
 
 
+def _shared_rows(rows):
+    return [{'wire': [start, end],
+             'original': [row.start, row.end, row.value],
+             'sources': [[source.page_id, source.start, source.end] for source in row.sources]}
+            for (start, end), row in rows]
+
+
+def show_shared(ledger, batch, sample):
+    """Issue one shared payload from the sample's signed pairs and check it.
+
+    The device ledger is already closed.  Issuance runs in a read-only
+    connection that is then closed, the night shift fetches both reports on its
+    own in a second connection that is also closed, and acceptance then runs
+    only on the received package and those two reports -- with no device and no
+    open archive handle.
+    """
+    pairs = sample.get('shared_pairs', [])
+    issued = {}
+    with open_session(ledger, batch) as session:
+        for pair in pairs:
+            single_id, double_id = pair['single'], pair['double']
+            try:
+                issued[(single_id, double_id)] = issue_shared(session, single_id, double_id)
+            except ExchangeError:
+                if not pair.get('expect_reject'):
+                    raise
+                issued[(single_id, double_id)] = None
+
+    reports = {}
+    with open_session(ledger, batch) as session:
+        for pair in pairs:
+            if issued[(pair['single'], pair['double'])] is None:
+                continue
+            reports[(pair['single'], pair['double'])] = (
+                get_report(session, pair['single']), get_report(session, pair['double']))
+
+    # Both connections are now closed: acceptance is offline.
+    for pair in pairs:
+        key = (pair['single'], pair['double'])
+        package = issued[key]
+        if package is None:
+            print(json.dumps({'shared': list(key), 'result': 'rejected'}))
+            continue
+        if pair.get('expect_reject'):
+            raise RuntimeError('shared pair was expected to be rejected')
+        single_report, double_report = reports[key]
+        single_rows, double_rows = reconcile_shared(package, single_report, double_report)
+        actual = {'payload': package['payload'].hex(),
+                  'single': _shared_rows(single_rows),
+                  'double': _shared_rows(double_rows)}
+        require(actual, pair['expected'])
+        print(json.dumps({
+            'shared': list(key),
+            'receipts': [asdict(receipt) for receipt in package['receipts']],
+            **actual,
+        }))
+
+
 def run_workday(sample, directory):
     ledger = directory / 'exchange.sqlite'
     device_ledger = directory / 'device.sqlite'
@@ -99,6 +157,8 @@ def run_workday(sample, directory):
         actual_handover = {'ready': list(handover.ready), 'pending': list(handover.pending)}
         require(actual_handover, sample['handover'])
         print(json.dumps({'audit': actual_rows, 'handover': actual_handover}))
+
+    show_shared(ledger, batch, sample)
 
 
 def main() -> None:

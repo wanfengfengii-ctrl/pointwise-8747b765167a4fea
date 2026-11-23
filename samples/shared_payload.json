@@ -65,5 +65,49 @@
   "handover": {
     "ready": ["single-three", "single-zero", "double-two", "double-three-one", "single-three-copy", "empty-single", "empty-double"],
     "pending": []
-  }
+  },
+  "shared_pairs": [
+    {
+      "single": "single-three",
+      "double": "double-two",
+      "expected": {
+        "payload": "010101010101",
+        "single": [
+          {"wire": [0, 2], "original": [0, 3, 1], "sources": [["S1", 0, 2], ["S2", 0, 1]]},
+          {"wire": [2, 4], "original": [3, 6, 1], "sources": [["S2", 1, 4]]},
+          {"wire": [4, 6], "original": [6, 9, 1], "sources": [["S2", 4, 7]]}
+        ],
+        "double": [
+          {"wire": [0, 3], "original": [0, 3, 2], "sources": [["D1", 0, 2], ["D2", 0, 1]]},
+          {"wire": [3, 6], "original": [3, 6, 2], "sources": [["D2", 1, 4]]}
+        ]
+      }
+    },
+    {
+      "single": "single-zero",
+      "double": "double-two",
+      "expected": {
+        "payload": "0200000200010101",
+        "single": [
+          {"wire": [0, 3], "original": [0, 2, 0], "sources": [["Z1", 0, 2]]},
+          {"wire": [3, 6], "original": [2, 4, 1], "sources": [["Z1", 2, 4]]},
+          {"wire": [6, 8], "original": [4, 6, 1], "sources": [["Z2", 0, 2]]}
+        ],
+        "double": [
+          {"wire": [0, 5], "original": [0, 3, 2], "sources": [["D1", 0, 2], ["D2", 0, 1]]},
+          {"wire": [5, 8], "original": [3, 6, 2], "sources": [["D2", 1, 4]]}
+        ]
+      }
+    },
+    {
+      "single": "empty-single",
+      "double": "empty-double",
+      "expected": {"payload": "", "single": [], "double": []}
+    },
+    {
+      "single": "single-zero",
+      "double": "double-three-one",
+      "expect_reject": true
+    }
+  ]
 }

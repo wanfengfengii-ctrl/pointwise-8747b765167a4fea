@@ -37,5 +37,23 @@
   "handover": {
     "ready": ["morning-fixed", "noon-single", "noon-double"],
     "pending": ["awaiting-pages"]
-  }
+  },
+  "shared_pairs": [
+    {
+      "single": "noon-single",
+      "double": "noon-double",
+      "expected": {
+        "payload": "010101010101",
+        "single": [
+          {"wire": [0, 2], "original": [0, 2, 1], "sources": [["P1", 0, 2]]},
+          {"wire": [2, 4], "original": [2, 4, 1], "sources": [["P2", 0, 2]]},
+          {"wire": [4, 6], "original": [4, 6, 1], "sources": [["P2", 2, 4]]}
+        ],
+        "double": [
+          {"wire": [0, 3], "original": [0, 3, 2], "sources": [["P1", 0, 2], ["P2", 0, 1]]},
+          {"wire": [3, 6], "original": [3, 6, 2], "sources": [["P2", 1, 4]]}
+        ]
+      }
+    }
+  ]
 }
