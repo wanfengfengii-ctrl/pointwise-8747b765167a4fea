@@ -1,0 +1,41 @@
+{
+  "batch_id": "day-1",
+  "device_id": "reader-a",
+  "reels": [
+    {
+      "reel_id": "morning-fixed",
+      "mode": "fixed-single",
+      "pages": [["A9", "010702"], ["A2", "0304"]],
+      "dialect": "single",
+      "expected": {"values": [7, 7], "ranges": [[0, 2], [2, 5]], "total": 14}
+    },
+    {
+      "reel_id": "noon-single",
+      "mode": "tail",
+      "pages": [["P1", "0101"], ["P2", "01010101"]],
+      "dialect": "single",
+      "expected": {"values": [1, 1, 1], "ranges": [[0, 2], [2, 4], [4, 6]], "total": 3}
+    },
+    {
+      "reel_id": "noon-double",
+      "mode": "tail",
+      "pages": [["P1", "0101"], ["P2", "01010101"]],
+      "dialect": "double",
+      "lose_release_for": "P1",
+      "expected": {"values": [2, 2], "ranges": [[0, 3], [3, 6]], "total": 4}
+    },
+    {
+      "reel_id": "awaiting-pages",
+      "mode": "tail"
+    }
+  ],
+  "audit": {
+    "reel_id": "noon-double", "window": [2, 3],
+    "expected": [{"start": 0, "end": 3, "value": 2,
+      "sources": [{"page_id": "P1", "start": 0, "end": 2}, {"page_id": "P2", "start": 0, "end": 1}]}]
+  },
+  "handover": {
+    "ready": ["morning-fixed", "noon-single", "noon-double"],
+    "pending": ["awaiting-pages"]
+  }
+}

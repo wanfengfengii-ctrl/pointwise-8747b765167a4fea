@@ -1,0 +1,69 @@
+{
+  "batch_id": "shared-day",
+  "device_id": "reader-bench",
+  "reels": [
+    {
+      "reel_id": "single-three",
+      "mode": "fixed-single",
+      "pages": [["S1", "0200"], ["S2", "01020100020001"]],
+      "dialect": "single",
+      "expected": {"values": [1, 1, 1], "ranges": [[0, 3], [3, 6], [6, 9]], "total": 3}
+    },
+    {
+      "reel_id": "single-zero",
+      "mode": "fixed-single",
+      "pages": [["Z1", "01000101"], ["Z2", "0101"]],
+      "dialect": "single",
+      "expected": {"values": [0, 1, 1], "ranges": [[0, 2], [2, 4], [4, 6]], "total": 2}
+    },
+    {
+      "reel_id": "double-two",
+      "mode": "fixed-double",
+      "pages": [["D1", "0102"], ["D2", "00010200"]],
+      "dialect": "double",
+      "expected": {"values": [2, 2], "ranges": [[0, 3], [3, 6]], "total": 4}
+    },
+    {
+      "reel_id": "double-three-one",
+      "mode": "fixed-double",
+      "pages": [["T1", "010300"], ["T2", "010100"]],
+      "dialect": "double",
+      "expected": {"values": [3, 1], "ranges": [[0, 3], [3, 6]], "total": 4}
+    },
+    {
+      "reel_id": "single-three-copy",
+      "mode": "fixed-single",
+      "pages": [["C1", "010101010101"]],
+      "dialect": "single",
+      "expected": {"values": [1, 1, 1], "ranges": [[0, 2], [2, 4], [4, 6]], "total": 3}
+    },
+    {
+      "reel_id": "empty-single",
+      "mode": "fixed-single",
+      "pages": [["ES", ""]],
+      "dialect": "single",
+      "expected": {"values": [], "ranges": [], "total": 0}
+    },
+    {
+      "reel_id": "empty-double",
+      "mode": "fixed-double",
+      "pages": [["ED", ""]],
+      "dialect": "double",
+      "expected": {"values": [], "ranges": [], "total": 0}
+    }
+  ],
+  "audit": {
+    "reel_id": "double-two",
+    "window": [2, 3],
+    "expected": [
+      {"start": 0, "end": 3, "value": 2, "sources": [
+        {"page_id": "D1", "start": 0, "end": 2},
+        {"page_id": "D2", "start": 0, "end": 1}
+      ]}
+    ]
+  },
+  "handover": {
+    "ready": ["single-three", "single-zero", "double-two", "double-three-one", "single-three-copy", "empty-single", "empty-double"],
+    "pending": []
+  }
+}
